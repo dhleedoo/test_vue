@@ -1,5 +1,5 @@
 ## 환경변수 설정
-backend/.env 파일 생성
+backend/.env 파일 생성 필요
 
 ## .env 작성 내용
 # Oracle Database 설정
