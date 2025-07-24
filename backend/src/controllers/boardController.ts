@@ -21,7 +21,12 @@ export const getAllBoards = async (req: Request, res: Response): Promise<void> =
     const result = await connection.execute(
       'SELECT BOARD_ID, TITLE, CONTENT, CREATED_AT, UPDATED_AT FROM BOARD ORDER BY CREATED_AT DESC',
       [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      { 
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: {
+          CONTENT: { type: oracledb.DB_TYPE_VARCHAR }  // CLOB을 문자열로 변환
+        }
+      }
     );
     
     res.json({
@@ -52,7 +57,12 @@ export const getBoardById = async (req: Request, res: Response): Promise<void> =
     const result = await connection.execute(
       'SELECT BOARD_ID, TITLE, CONTENT, CREATED_AT, UPDATED_AT FROM BOARD WHERE BOARD_ID = :id',
       [id],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      { 
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        fetchInfo: {
+          CONTENT: { type: oracledb.STRING }  // CLOB을 문자열로 변환
+        }
+      }
     );
     
     if (result.rows && result.rows.length > 0) {
