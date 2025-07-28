@@ -29,6 +29,14 @@
         ></textarea>
       </div>
 
+      <!-- 스프레드JS 컴포넌트 -->
+      <SpreadsheetViewer 
+        ref="spreadsheetViewer"
+        mode="create"
+        :readonly="false"
+        height="500px"
+      />
+
       <div class="form-actions">
         <button 
           type="button" 
@@ -55,6 +63,9 @@
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { boardAPI } from '../services/api';
+import SpreadsheetViewer from './SpreadsheetViewer.vue';
+// 스프레드JS 기능을 위한 필수 import
+import "@mescius/spread-sheets/styles/gc.spread.sheets.excel2016colorful.css";
 
 const router = useRouter();
 
@@ -66,22 +77,29 @@ const form = reactive({
 const loading = ref(false);
 const error = ref('');
 
+// 스프레드JS 컴포넌트 참조
+const spreadsheetViewer = ref<InstanceType<typeof SpreadsheetViewer> | null>(null);
+
 // 폼 제출
 const submitForm = async () => {
   try {
     loading.value = true;
     error.value = '';
 
+    // 스프레드JS 데이터 추출
+    const excelData = spreadsheetViewer.value?.getData() || null;
+
     await boardAPI.createBoard({
       title: form.title,
-      content: form.content
+      content: form.content,
+      excelData: excelData
     });
 
     // 성공 시 목록으로 이동
     router.push('/');
   } catch (err) {
     error.value = '게시글 작성에 실패했습니다.';
-    console.error('게시글 작성 오류:', err);
+    // console.error('게시글 작성 오류:', err);
   } finally {
     loading.value = false;
   }
@@ -95,8 +113,8 @@ const goBack = () => {
 
 <style scoped>
 .board-create {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 20px;
 }
 
@@ -111,36 +129,6 @@ const goBack = () => {
   border: 1px solid #ddd;
 }
 
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #333;
-}
-
-.form-control {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-textarea.form-control {
-  resize: vertical;
-  min-height: 200px;
-}
 
 .form-actions {
   display: flex;
@@ -149,45 +137,4 @@ textarea.form-control {
   margin-top: 30px;
 }
 
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.btn-primary:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #545b62;
-}
-
-.error-message {
-  margin-top: 15px;
-  padding: 10px;
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-}
 </style>

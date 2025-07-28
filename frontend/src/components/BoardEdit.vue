@@ -33,6 +33,14 @@
         ></textarea>
       </div>
 
+      <!-- 스프레드JS 컴포넌트 -->
+      <SpreadsheetViewer 
+        ref="spreadsheetViewer"
+        mode="edit"
+        :readonly="false"
+        height="500px"
+      />
+
       <div class="form-actions">
         <button 
           type="button" 
@@ -52,6 +60,7 @@
     </form>
 
     <div v-if="saveError" class="error-message">{{ saveError }}</div>
+
   </div>
 </template>
 
@@ -59,6 +68,9 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { boardAPI } from '../services/api';
+import SpreadsheetViewer from './SpreadsheetViewer.vue';
+// 스프레드JS 기능을 위한 필수 import
+import "@mescius/spread-sheets/styles/gc.spread.sheets.excel2016colorful.css";
 
 const route = useRoute();
 const router = useRouter();
@@ -73,6 +85,9 @@ const saving = ref(false);
 const error = ref('');
 const saveError = ref('');
 
+// 스프레드JS 컴포넌트 참조
+const spreadsheetViewer = ref<InstanceType<typeof SpreadsheetViewer> | null>(null);
+
 // 게시글 정보 조회
 const fetchBoard = async () => {
   try {
@@ -84,9 +99,18 @@ const fetchBoard = async () => {
     // 폼에 기존 데이터 설정
     form.title = board.TITLE;
     form.content = board.CONTENT;
+    
+    // Excel 데이터가 있으면 스프레드JS에 로드 (컴포넌트가 마운트된 후)
+    if (board.EXCEL_DATA) {
+      setTimeout(() => {
+        if (spreadsheetViewer.value) {
+          spreadsheetViewer.value.setData(board.EXCEL_DATA);
+        }
+      }, 100);
+    }
   } catch (err) {
     error.value = '게시글을 불러오는데 실패했습니다.';
-    console.error('게시글 조회 오류:', err);
+    // console.error('게시글 조회 오류:', err);
   } finally {
     loading.value = false;
   }
@@ -99,16 +123,20 @@ const submitForm = async () => {
     saveError.value = '';
     const id = parseInt(route.params.id as string);
 
+    // 스프레드JS 데이터 추출
+    const excelData = spreadsheetViewer.value?.getData() || null;
+
     await boardAPI.updateBoard(id, {
       title: form.title,
-      content: form.content
+      content: form.content,
+      excelData: excelData
     });
 
     // 성공 시 상세보기로 이동
     router.push(`/board/${id}`);
   } catch (err) {
     saveError.value = '게시글 수정에 실패했습니다.';
-    console.error('게시글 수정 오류:', err);
+    // console.error('게시글 수정 오류:', err);
   } finally {
     saving.value = false;
   }
@@ -119,6 +147,7 @@ const goBack = () => {
   router.back();
 };
 
+
 onMounted(() => {
   fetchBoard();
 });
@@ -126,8 +155,8 @@ onMounted(() => {
 
 <style scoped>
 .board-edit {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 20px;
 }
 
@@ -135,15 +164,6 @@ onMounted(() => {
   margin-bottom: 30px;
 }
 
-.loading, .error {
-  text-align: center;
-  padding: 40px;
-  font-size: 16px;
-}
-
-.error {
-  color: #dc3545;
-}
 
 .form {
   background: #f8f9fa;
@@ -152,36 +172,6 @@ onMounted(() => {
   border: 1px solid #ddd;
 }
 
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #333;
-}
-
-.form-control {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-textarea.form-control {
-  resize: vertical;
-  min-height: 200px;
-}
 
 .form-actions {
   display: flex;
@@ -190,45 +180,5 @@ textarea.form-control {
   margin-top: 30px;
 }
 
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: none;
-  display: inline-block;
-}
 
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.btn-primary:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #545b62;
-}
-
-.error-message {
-  margin-top: 15px;
-  padding: 10px;
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-}
 </style>

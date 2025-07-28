@@ -17,6 +17,16 @@
 
       <div class="body">
         <div class="content-text">{{ board.CONTENT }}</div>
+        
+        <!-- 스프레드JS 컴포넌트 (읽기 전용) -->
+        <div v-if="board.EXCEL_DATA" class="spreadsheet-section">
+          <SpreadsheetViewer 
+            ref="spreadsheetViewer"
+            mode="view"
+            :readonly="true"
+            height="500px"
+          />
+        </div>
       </div>
 
       <div class="actions">
@@ -43,6 +53,9 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { boardAPI, type Board } from '../services/api';
+import SpreadsheetViewer from './SpreadsheetViewer.vue';
+// 스프레드JS 기능을 위한 필수 import
+import "@mescius/spread-sheets/styles/gc.spread.sheets.excel2016colorful.css";
 
 const route = useRoute();
 const router = useRouter();
@@ -52,6 +65,9 @@ const loading = ref(true);
 const error = ref('');
 const deleting = ref(false);
 
+// 스프레드JS 컴포넌트 참조
+const spreadsheetViewer = ref<InstanceType<typeof SpreadsheetViewer> | null>(null);
+
 // 게시글 조회
 const fetchBoard = async () => {
   try {
@@ -59,9 +75,18 @@ const fetchBoard = async () => {
     error.value = '';
     const id = parseInt(route.params.id as string);
     board.value = await boardAPI.getBoardById(id);
+    
+    // Excel 데이터가 있으면 스프레드JS에 로드 (컴포넌트가 마운트된 후)
+    if (board.value?.EXCEL_DATA) {
+      setTimeout(() => {
+        if (spreadsheetViewer.value && board.value?.EXCEL_DATA) {
+          spreadsheetViewer.value.setData(board.value.EXCEL_DATA);
+        }
+      }, 100);
+    }
   } catch (err) {
     error.value = '게시글을 불러오는데 실패했습니다.';
-    console.error('게시글 조회 오류:', err);
+    // console.error('게시글 조회 오류:', err);
   } finally {
     loading.value = false;
   }
@@ -85,7 +110,7 @@ const deleteBoard = async () => {
     router.push('/');
   } catch (err) {
     alert('게시글 삭제에 실패했습니다.');
-    console.error('게시글 삭제 오류:', err);
+    // console.error('게시글 삭제 오류:', err);
   } finally {
     deleting.value = false;
   }
@@ -107,20 +132,11 @@ onMounted(() => {
 
 <style scoped>
 .board-detail {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 20px;
 }
 
-.loading, .error {
-  text-align: center;
-  padding: 40px;
-  font-size: 16px;
-}
-
-.error {
-  color: #dc3545;
-}
 
 .content {
   background: white;
@@ -168,45 +184,16 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: none;
-  display: inline-block;
+
+.spreadsheet-section {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid #eee;
 }
 
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #545b62;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #c82333;
-}
-
-.btn-danger:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
+.spreadsheet-section h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 18px;
 }
 </style>

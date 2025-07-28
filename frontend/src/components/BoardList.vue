@@ -81,8 +81,8 @@ onMounted(() => {
 
 <style scoped>
 .board-list {
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 20px;
 }
 
@@ -93,31 +93,6 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.btn {
-  padding: 8px 16px;
-  text-decoration: none;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-
-.loading, .error, .no-data {
-  text-align: center;
-  padding: 40px;
-  font-size: 16px;
-}
-
-.error {
-  color: #dc3545;
-}
 
 .board-table {
   width: 100%;

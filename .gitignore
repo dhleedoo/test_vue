@@ -36,3 +36,6 @@ coverage/
 
 # nyc test coverage
 .nyc_output
+
+# etc
+CLAUDE.md

@@ -7,6 +7,7 @@ interface Board {
   BOARD_ID: number;
   TITLE: string;
   CONTENT: string;
+  EXCEL_DATA?: any;
   CREATED_AT: Date;
   UPDATED_AT: Date;
 }
@@ -19,7 +20,7 @@ export const getAllBoards = async (req: Request, res: Response): Promise<void> =
     connection = await getConnection();
     
     const result = await connection.execute(
-      'SELECT BOARD_ID, TITLE, CONTENT, CREATED_AT, UPDATED_AT FROM BOARD ORDER BY CREATED_AT DESC',
+      'SELECT BOARD_ID, TITLE, CONTENT, EXCEL_DATA, CREATED_AT, UPDATED_AT FROM BOARD ORDER BY CREATED_AT DESC',
       [],
       { 
         outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -29,12 +30,15 @@ export const getAllBoards = async (req: Request, res: Response): Promise<void> =
       }
     );
     
+    // Oracle JSON 타입은 자동으로 객체로 변환됨
+    const processedRows = result.rows;
+    
     res.json({
       success: true,
-      data: result.rows
+      data: processedRows
     });
   } catch (error) {
-    console.error('게시글 조회 오류:', error);
+    // console.error('게시글 조회 오류:', error);
     res.status(500).json({
       success: false,
       message: '게시글을 가져오는데 실패했습니다.'
@@ -55,7 +59,7 @@ export const getBoardById = async (req: Request, res: Response): Promise<void> =
     connection = await getConnection();
     
     const result = await connection.execute(
-      'SELECT BOARD_ID, TITLE, CONTENT, CREATED_AT, UPDATED_AT FROM BOARD WHERE BOARD_ID = :id',
+      'SELECT BOARD_ID, TITLE, CONTENT, EXCEL_DATA, CREATED_AT, UPDATED_AT FROM BOARD WHERE BOARD_ID = :id',
       [id],
       { 
         outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -66,9 +70,12 @@ export const getBoardById = async (req: Request, res: Response): Promise<void> =
     );
     
     if (result.rows && result.rows.length > 0) {
+      // Oracle JSON 타입은 자동으로 객체로 변환됨
+      const boardData = result.rows[0] as any;
+      
       res.json({
         success: true,
-        data: result.rows[0]
+        data: boardData
       });
     } else {
       res.status(404).json({
@@ -77,7 +84,7 @@ export const getBoardById = async (req: Request, res: Response): Promise<void> =
       });
     }
   } catch (error) {
-    console.error('게시글 조회 오류:', error);
+    // console.error('게시글 조회 오류:', error);
     res.status(500).json({
       success: false,
       message: '게시글을 가져오는데 실패했습니다.'
@@ -92,7 +99,7 @@ export const getBoardById = async (req: Request, res: Response): Promise<void> =
 // 새 게시글 작성
 export const createBoard = async (req: Request, res: Response): Promise<void> => {
   let connection;
-  const { title, content } = req.body;
+  const { title, content, excelData } = req.body;
   
   if (!title || !content) {
     res.status(400).json({
@@ -102,12 +109,28 @@ export const createBoard = async (req: Request, res: Response): Promise<void> =>
     return;
   }
   
+  // JSON 데이터 유효성 검사
+  if (excelData && typeof excelData !== 'object') {
+    res.status(400).json({
+      success: false,
+      message: '유효하지 않은 Excel 데이터 형식입니다.'
+    });
+    return;
+  }
+  
   try {
     connection = await getConnection();
     
     const result = await connection.execute(
-      'INSERT INTO BOARD (TITLE, CONTENT) VALUES (:title, :content)',
-      [title, content],
+      'INSERT INTO BOARD (TITLE, CONTENT, EXCEL_DATA) VALUES (:title, :content, :excelData)',
+      {
+        title: title,
+        content: content,
+        excelData: {
+          val: excelData || null,
+          type: oracledb.DB_TYPE_JSON
+        }
+      },
       { autoCommit: true }
     );
     
@@ -116,7 +139,7 @@ export const createBoard = async (req: Request, res: Response): Promise<void> =>
       message: '게시글이 성공적으로 작성되었습니다.'
     });
   } catch (error) {
-    console.error('게시글 작성 오류:', error);
+    // console.error('게시글 작성 오류:', error);
     res.status(500).json({
       success: false,
       message: '게시글 작성에 실패했습니다.'
@@ -132,7 +155,7 @@ export const createBoard = async (req: Request, res: Response): Promise<void> =>
 export const updateBoard = async (req: Request, res: Response): Promise<void> => {
   let connection;
   const { id } = req.params;
-  const { title, content } = req.body;
+  const { title, content, excelData } = req.body;
   
   if (!title || !content) {
     res.status(400).json({
@@ -142,12 +165,29 @@ export const updateBoard = async (req: Request, res: Response): Promise<void> =>
     return;
   }
   
+  // JSON 데이터 유효성 검사
+  if (excelData && typeof excelData !== 'object') {
+    res.status(400).json({
+      success: false,
+      message: '유효하지 않은 Excel 데이터 형식입니다.'
+    });
+    return;
+  }
+  
   try {
     connection = await getConnection();
     
     const result = await connection.execute(
-      'UPDATE BOARD SET TITLE = :title, CONTENT = :content, UPDATED_AT = CURRENT_TIMESTAMP WHERE BOARD_ID = :id',
-      [title, content, id],
+      'UPDATE BOARD SET TITLE = :title, CONTENT = :content, EXCEL_DATA = :excelData, UPDATED_AT = CURRENT_TIMESTAMP WHERE BOARD_ID = :id',
+      {
+        title: title,
+        content: content,
+        excelData: {
+          val: excelData || null,
+          type: oracledb.DB_TYPE_JSON
+        },
+        id: id
+      },
       { autoCommit: true }
     );
     
@@ -163,7 +203,7 @@ export const updateBoard = async (req: Request, res: Response): Promise<void> =>
       });
     }
   } catch (error) {
-    console.error('게시글 수정 오류:', error);
+    // console.error('게시글 수정 오류:', error);
     res.status(500).json({
       success: false,
       message: '게시글 수정에 실패했습니다.'
@@ -201,7 +241,7 @@ export const deleteBoard = async (req: Request, res: Response): Promise<void> =>
       });
     }
   } catch (error) {
-    console.error('게시글 삭제 오류:', error);
+    // console.error('게시글 삭제 오류:', error);
     res.status(500).json({
       success: false,
       message: '게시글 삭제에 실패했습니다.'

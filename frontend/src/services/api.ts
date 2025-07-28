@@ -14,6 +14,7 @@ export interface Board {
   BOARD_ID: number;
   TITLE: string;
   CONTENT: string;
+  EXCEL_DATA?: any;
   CREATED_AT: string;
   UPDATED_AT: string;
 }
@@ -21,11 +22,13 @@ export interface Board {
 export interface CreateBoardData {
   title: string;
   content: string;
+  excelData?: any;
 }
 
 export interface UpdateBoardData {
   title: string;
   content: string;
+  excelData?: any;
 }
 
 // API 응답 인터페이스
