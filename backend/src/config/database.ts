@@ -19,11 +19,11 @@ let pool: oracledb.Pool;
 
 export const initializeDatabase = async (): Promise<void> => {
   try {
-    // Oracle 클라이언트 초기화
-    const libDir = process.env.ORACLE_CLIENT_LIB_DIR;
-    if (libDir) {
-      oracledb.initOracleClient({ libDir });
-    }
+    // Oracle 클라이언트 초기화 -- Linux 필요
+    // const libDir = process.env.ORACLE_CLIENT_LIB_DIR;
+    // if (libDir) {
+    //   oracledb.initOracleClient({ libDir });
+    // }
     
     // 커넥션 풀 생성
     pool = await oracledb.createPool(dbConfig);
