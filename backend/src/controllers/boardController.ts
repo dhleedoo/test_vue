@@ -273,11 +273,11 @@ export const getBoardsByPage = async (req: Request, res: Response): Promise<void
       SELECT * FROM (
         SELECT 
           BOARD_ID, TITLE, CONTENT, EXCEL_DATA, CREATED_AT, UPDATED_AT,
-          ROW_NUMBER() OVER (ORDER BY BOARD_ID ASC) AS RN
+          ROW_NUMBER() OVER (ORDER BY BOARD_ID DESC) AS RN
         FROM BOARD
         ${whereClause}
       ) WHERE RN > :offset AND RN <= :maxRow
-      ORDER BY BOARD_ID ASC
+      ORDER BY BOARD_ID DESC
     `;
 
     // 게시글 페이징 조회
