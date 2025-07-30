@@ -69,6 +69,33 @@ export const boardAPI = {
   deleteBoard: async (id: number): Promise<void> => {
     await API.delete<ApiResponse<null>>(`/board/${id}`);
   },
+
+  // 게시글 페이지네이션 + 검색
+  getBoardsByPage: async (
+    page: number,
+    keyword: string = ''
+  ): Promise<{
+    data: Board[];
+    pagination: {
+      page: number;
+      totalPages: number;
+      totalCount: number;
+      itemsPerPage: number;
+    };
+  }> => {
+    const url = keyword
+      ? `/board/page?page=${page}&keyword=${encodeURIComponent(keyword)}`
+      : `/board/page?page=${page}`;
+
+    const response = await API.get<ApiResponse<Board[]>>(url);
+    if (!response.data.success) {
+      throw new Error(response.data.message || '페이지별 게시글을 불러오는데 실패했습니다.');
+    }
+    return {
+      data: response.data.data || [],
+      pagination: (response.data as any).pagination
+    };
+  },
 };
 
 export default API;
