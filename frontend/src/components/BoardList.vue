@@ -2,17 +2,11 @@
   <div class="board-list">
     <div class="header">
       <h2>게시판</h2>
-      
-      <div class="search-bar">
-        <input
-          v-model="searchKeyword"
-          type="text"
-          placeholder="제목 검색"
-          @keyup.enter="onSearch"
-        />
-        <button class="btn btn-primary" @click="onSearch">검색</button>
-      </div>
 
+      <!-- 검색 컴포넌트 -->
+      <SearchBar :keyword="searchKeyword" @search="onSearch" />
+
+      <!-- 글 작성 버튼 -->
       <div class="actions">
         <router-link to="/create" class="btn btn-primary">글 작성</router-link>
       </div>
@@ -35,10 +29,7 @@
           <tr v-for="board in boards" :key="board.BOARD_ID">
             <td>{{ board.BOARD_ID }}</td>
             <td>
-              <router-link
-                :to="`/board/${board.BOARD_ID}`"
-                class="title-link"
-              >
+              <router-link :to="`/board/${board.BOARD_ID}`" class="title-link">
                 {{ board.TITLE }}
               </router-link>
             </td>
@@ -64,6 +55,8 @@ import { ref, onMounted } from 'vue';
 import { boardAPI, type Board } from '../services/api';
 // @ts-ignore
 import Pagination from './Pagination.vue';
+// @ts-ignore
+import SearchBar from './SearchBar.vue';
 
 const boards = ref<Board[]>([]);
 const loading = ref(false);
@@ -71,13 +64,13 @@ const error = ref('');
 
 const currentPage = ref(1);
 const totalPages = ref(1);
-const searchKeyword = ref('');  // 검색어 상태 추가
+const searchKeyword = ref('');
 
+// 게시글 가져오기
 const fetchBoards = async (page: number, keyword = '') => {
   try {
     loading.value = true;
     error.value = '';
-    // API 호출 시 검색어 전달
     const response = await boardAPI.getBoardsByPage(page, keyword);
     boards.value = response.data;
     totalPages.value = response.pagination.totalPages;
@@ -90,6 +83,7 @@ const fetchBoards = async (page: number, keyword = '') => {
   }
 };
 
+// 날짜 포맷
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return (
@@ -99,14 +93,18 @@ const formatDate = (dateString: string): string => {
   );
 };
 
+// 페이지 변경
 const handlePageChange = (page: number) => {
   fetchBoards(page, searchKeyword.value);
 };
 
-const onSearch = () => {
-  fetchBoards(1, searchKeyword.value); // 검색 시 1페이지부터 조회
+// 검색 수행
+const onSearch = (keyword: string) => {
+  searchKeyword.value = keyword;
+  fetchBoards(1, keyword); // 검색은 항상 1페이지부터 시작
 };
 
+// 초기 로딩
 onMounted(() => {
   fetchBoards(currentPage.value);
 });
@@ -117,6 +115,7 @@ onMounted(() => {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
+  position: relative;
 }
 
 .header {
@@ -142,7 +141,9 @@ onMounted(() => {
   background-color: #0056b3;
 }
 
-.loading, .error, .no-data {
+.loading,
+.error,
+.no-data {
   text-align: center;
   padding: 40px;
   font-size: 16px;
@@ -181,26 +182,5 @@ onMounted(() => {
 
 .title-link:hover {
   text-decoration: underline;
-}
-
-/* 검색바는 가운데 정렬 위해 위치 조정 */
-.search-bar {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-}
-
-.search-bar input {
-  height: 40px;          /* 버튼과 같은 높이 지정 */
-  width: 600px;          /* 너비 600px */
-  padding: 0 12px;       /* 좌우 여백 조절 (위아래 패딩 대신 height로 높이 조절) */
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  outline: none;
-  font-size: 14px;
-  margin-right: 6px;
-  box-sizing: border-box; /* 패딩과 border 포함 너비에 포함 */
 }
 </style>
