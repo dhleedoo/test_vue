@@ -77,26 +77,26 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useSpreadsheet, type SpreadsheetOptions } from '../composables/useSpreadsheet';
+import { useSpreadsheet } from '../composables/useSpreadsheet';
 
 // Props 정의
 interface Props {
   height?: string;
   readonly?: boolean;
   mode?: 'view' | 'edit' | 'create';
-  initialData?: any;
+  initialData?: unknown;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   height: '500px',
   readonly: false,
-  mode: 'edit',
-  initialData: null
+  mode: 'edit'
 });
 
 // Emits 정의
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits<{
-  dataChange: [data: any];
+  dataChange: [data: unknown];
 }>();
 
 // 스프레드JS composable 사용
@@ -117,7 +117,7 @@ const selectAllText = () => {
 };
 
 // 외부에서 데이터 설정 (expose)
-const setData = (data: any) => {
+const setData = (data: unknown) => {
   spreadsheet.setExcelData(data);
 };
 

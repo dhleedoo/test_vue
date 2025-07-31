@@ -84,9 +84,8 @@ const fetchBoard = async () => {
         }
       }, 100);
     }
-  } catch (err) {
+  } catch {
     error.value = '게시글을 불러오는데 실패했습니다.';
-    // console.error('게시글 조회 오류:', err);
   } finally {
     loading.value = false;
   }
@@ -108,9 +107,8 @@ const deleteBoard = async () => {
     await boardAPI.deleteBoard(board.value.BOARD_ID);
     alert('게시글이 삭제되었습니다.');
     router.push('/');
-  } catch (err) {
+  } catch {
     alert('게시글 삭제에 실패했습니다.');
-    // console.error('게시글 삭제 오류:', err);
   } finally {
     deleting.value = false;
   }

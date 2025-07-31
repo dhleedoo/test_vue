@@ -97,9 +97,8 @@ const submitForm = async () => {
 
     // 성공 시 목록으로 이동
     router.push('/');
-  } catch (err) {
+  } catch {
     error.value = '게시글 작성에 실패했습니다.';
-    // console.error('게시글 작성 오류:', err);
   } finally {
     loading.value = false;
   }

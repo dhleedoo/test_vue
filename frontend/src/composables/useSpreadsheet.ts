@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
 import * as GC from "@mescius/spread-sheets";
 import "@mescius/spread-sheets-io";
 import { saveAs } from "file-saver";
@@ -6,26 +6,26 @@ import { saveAs } from "file-saver";
 export interface SpreadsheetOptions {
   mode?: 'view' | 'edit' | 'create';
   readonly?: boolean;
-  initialData?: any;
+  initialData?: unknown;
 }
 
 export function useSpreadsheet(options: SpreadsheetOptions = {}) {
   const { mode = 'edit', readonly = false, initialData = null } = options;
 
   // 스프레드JS 상태
-  const spread = ref<any>(null);
+  const spread = ref<unknown>(null);
   const importExcelFile = ref<File | null>(null);
   const exportFileName = ref('export.xlsx');
   const revenueCount = ref(8);
   const newRowIndex = ref(11);
-  const savedExcelData = ref<any>(initialData);
+  const savedExcelData = ref<unknown>(initialData);
 
   // JSON 모달 관련
   const showJsonModal = ref(false);
   const jsonOutput = ref('');
 
   // 스프레드JS 초기화
-  const initSpread = (spreadInstance: any) => {
+  const initSpread = (spreadInstance: unknown) => {
     spread.value = spreadInstance;
     revenueCount.value = 8;
     newRowIndex.value = 11;
@@ -43,8 +43,8 @@ export function useSpreadsheet(options: SpreadsheetOptions = {}) {
     try {
       spread.value.fromJSON(savedExcelData.value);
       // console.log('저장된 Excel 데이터 로드 성공');
-    } catch (error) {
-      // console.error('스프레드JS 데이터 로드 오류:', error);
+    } catch {
+      // console.error('스프레드JS 데이터 로드 오류');
     }
   };
 
@@ -54,14 +54,14 @@ export function useSpreadsheet(options: SpreadsheetOptions = {}) {
     
     try {
       return spread.value.toJSON();
-    } catch (error) {
-      // console.error('스프레드JS 데이터 추출 오류:', error);
+    } catch {
+      // console.error('스프레드JS 데이터 추출 오류');
       return null;
     }
   };
 
   // Excel 데이터 설정 (외부에서 데이터 로드용)
-  const setExcelData = (data: any) => {
+  const setExcelData = (data: unknown) => {
     savedExcelData.value = data;
     if (spread.value) {
       loadExcelDataToSpread();
@@ -96,7 +96,7 @@ export function useSpreadsheet(options: SpreadsheetOptions = {}) {
       () => {
         console.log("Excel 가져오기 성공");
       },
-      (e: any) => {
+      (e: unknown) => {
         console.error("Excel 가져오기 오류:", e);
         alert("Excel 파일을 가져오는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.");
       },
@@ -162,7 +162,7 @@ export function useSpreadsheet(options: SpreadsheetOptions = {}) {
         saveAs(blob, fileName);
         console.log("Excel 저장 성공");
       },
-      (e: any) => {
+      (e: unknown) => {
         console.error("Excel 저장 오류:", e);
         alert("Excel 파일 저장 중 오류가 발생했습니다.");
       },
@@ -193,7 +193,7 @@ export function useSpreadsheet(options: SpreadsheetOptions = {}) {
     try {
       await navigator.clipboard.writeText(jsonOutput.value);
       alert('클립보드에 복사되었습니다!');
-    } catch (err) {
+    } catch {
       alert('클립보드 복사에 실패했습니다. 텍스트를 선택했으니 Ctrl+C로 복사해주세요.');
     }
   };

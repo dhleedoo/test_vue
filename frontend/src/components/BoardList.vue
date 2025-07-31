@@ -53,9 +53,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { boardAPI, type Board } from '../services/api';
-// @ts-ignore
 import Pagination from './Pagination.vue';
-// @ts-ignore
 import SearchBar from './SearchBar.vue';
 
 const boards = ref<Board[]>([]);

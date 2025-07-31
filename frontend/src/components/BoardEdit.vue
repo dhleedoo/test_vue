@@ -108,9 +108,8 @@ const fetchBoard = async () => {
         }
       }, 100);
     }
-  } catch (err) {
+  } catch {
     error.value = '게시글을 불러오는데 실패했습니다.';
-    // console.error('게시글 조회 오류:', err);
   } finally {
     loading.value = false;
   }
@@ -134,9 +133,8 @@ const submitForm = async () => {
 
     // 성공 시 상세보기로 이동
     router.push(`/board/${id}`);
-  } catch (err) {
+  } catch {
     saveError.value = '게시글 수정에 실패했습니다.';
-    // console.error('게시글 수정 오류:', err);
   } finally {
     saving.value = false;
   }
